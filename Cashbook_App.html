@@ -56,6 +56,7 @@
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-danger { background: var(--danger); color: white; }
+    
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); transition: all 0.2s; }
     .btn-outline:hover { background: var(--primary); color: white; border-color: var(--primary); }
     .btn-outline:active { transform: scale(0.95); }
@@ -119,8 +120,8 @@
       <button class="btn btn-primary" style="width: 100%;" onclick="app.login()">Login</button>
       
       <div class="mt-4 text-center" style="font-size: 0.8rem; color: var(--text-muted);">
-       
-             </div>
+        (Users can be created inside the Admin panel)
+      </div>
     </div>
   </div>
 
@@ -231,38 +232,47 @@
       </div>
 
       <div class="grid grid-2">
-        <!-- Deposits -->
+        <!-- Receipts (was Deposits) -->
         <div class="card">
-          <h3 class="subtitle text-success mb-4">Deposits</h3>
+          <h3 class="subtitle text-success mb-4">Receipts</h3>
           <div class="flex gap-2 mb-4" id="deposit-form">
-            <select id="dep-mode" style="width: 25%"><option>Cash</option><option>Bank</option><option>UPI</option></select>
-            <input type="text" id="dep-source" placeholder="Source (e.g., Abhilash, Bank...)" style="width: 50%">
+            <select id="dep-mode" style="width: 25%"><option>Cash</option><option>UPI</option><option>Bank</option></select>
+            <input type="text" id="dep-source" placeholder="Source/From" style="width: 50%">
             <input type="number" id="dep-amount" placeholder="Amount" style="width: 25%">
             <button class="btn btn-primary" onclick="app.addTransaction('Deposit')">+</button>
           </div>
           <div class="table-responsive">
-            <table><tbody id="deposits-list"></tbody></table>
+            <table>
+              <thead><tr><th>Mode</th><th>Source</th><th>Amount</th><th></th></tr></thead>
+              <tbody id="deposits-list"></tbody>
+            </table>
           </div>
         </div>
 
-        <!-- Expenses -->
+        <!-- Payments (was Expenses) -->
         <div class="card">
           <div class="flex items-center mb-4">
-            <h3 class="subtitle text-danger mb-0">Expenses</h3>
+            <h3 class="subtitle text-danger mb-0">Payments</h3>
             <button class="btn btn-outline" style="padding:0.2rem 0.5rem; font-size:0.75rem; margin-left:auto;" onclick="app.copyExpenses()">📋 Copy</button>
           </div>
-          <div class="flex gap-2 mb-4" id="expense-form">
-            <select id="exp-mode" style="width: 25%"><option>Cash</option><option>Bank</option><option>UPI</option></select>
-            <input type="text" id="exp-source" placeholder="Details (e.g., Cement, Steel...)" style="width: 50%">
-            <input type="number" id="exp-amount" placeholder="Amount" style="width: 25%">
+          <div class="flex gap-2 mb-2" id="expense-form">
+            <select id="exp-mode" style="width: 20%"><option>Cash</option><option>UPI</option><option>Bank</option></select>
+            <input type="text" id="exp-name" placeholder="Name/Vendor" style="width: 25%">
+            <input type="text" id="exp-details" placeholder="Details (e.g., Petrol)" style="flex-grow: 1;">
+            <input type="number" id="exp-amount" placeholder="Amount" style="width: 20%">
             <button class="btn btn-danger" onclick="app.addTransaction('Expense')">+</button>
           </div>
+          <p style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 1rem;">(Ex: Petrol | Details: HP Bunk | Amount: 500)</p>
           <div class="table-responsive">
-            <table><tbody id="expenses-list"></tbody></table>
+            <table>
+              <thead><tr><th>Mode</th><th>Name</th><th>Details</th><th>Amount</th><th></th></tr></thead>
+              <tbody id="expenses-list"></tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
+
     <!-- BANK ENTRY TAB -->
     <div id="tab-content-bank-entry" class="tab-content" style="display: none;">
       <div class="flex justify-between items-center mb-4">
@@ -290,35 +300,44 @@
       </div>
 
       <div class="grid grid-2">
-        <!-- Bank Credits -->
+        <!-- Bank Receipts -->
         <div class="card">
-          <h3 class="subtitle text-success mb-4">Bank Credits (Deposits)</h3>
+          <h3 class="subtitle text-success mb-4">Bank Receipts (In)</h3>
           <div class="flex gap-2 mb-4">
+            <select id="bank-cred-mode" style="width: 20%"><option>Cash</option><option>UPI</option><option>Bank</option></select>
             <input type="text" id="bank-cred-ref" placeholder="Ref/Cheque No" style="width: 25%">
             <input type="text" id="bank-cred-desc" placeholder="Source/Description" style="width: 50%">
-            <input type="number" id="bank-cred-amount" placeholder="Amount" style="width: 25%">
+            <input type="number" id="bank-cred-amount" placeholder="Amount" style="width: 20%">
             <button class="btn btn-primary" onclick="app.addBankTransaction('Credit')">+</button>
           </div>
           <div class="table-responsive">
-            <table><tbody id="bank-credits-list"></tbody></table>
+            <table>
+              <thead><tr><th>Mode</th><th>Ref</th><th>Source</th><th>Amount</th><th></th></tr></thead>
+              <tbody id="bank-credits-list"></tbody>
+            </table>
           </div>
         </div>
 
-        <!-- Bank Debits -->
+        <!-- Bank Payments -->
         <div class="card">
-          <h3 class="subtitle text-danger mb-4">Bank Debits (Payments)</h3>
+          <h3 class="subtitle text-danger mb-4">Bank Payments (Out)</h3>
           <div class="flex gap-2 mb-4">
+            <select id="bank-deb-mode" style="width: 20%"><option>Cash</option><option>UPI</option><option>Bank</option></select>
             <input type="text" id="bank-deb-ref" placeholder="Ref/Cheque No" style="width: 25%">
             <input type="text" id="bank-deb-desc" placeholder="Details/Description" style="width: 50%">
-            <input type="number" id="bank-deb-amount" placeholder="Amount" style="width: 25%">
+            <input type="number" id="bank-deb-amount" placeholder="Amount" style="width: 20%">
             <button class="btn btn-danger" onclick="app.addBankTransaction('Debit')">+</button>
           </div>
           <div class="table-responsive">
-            <table><tbody id="bank-debits-list"></tbody></table>
+            <table>
+              <thead><tr><th>Mode</th><th>Ref</th><th>Details</th><th>Amount</th><th></th></tr></thead>
+              <tbody id="bank-debits-list"></tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
+
     <!-- CASH COUNT TAB -->
     <div id="tab-content-cash-count" class="tab-content" style="display: none;">
       <div class="card">
@@ -388,8 +407,8 @@
               <tr>
                 <th>Date</th>
                 <th>Opening</th>
-                <th>Deposits/Credits</th>
-                <th>Expenses/Debits</th>
+                <th>Receipts/Credits</th>
+                <th>Payments/Debits</th>
                 <th>Closing</th>
                 <th>Status</th>
               </tr>
@@ -451,6 +470,7 @@ const api = {
       set('Users', users); return {status:'success'};
     }
     if (action === 'deleteUser') { set('Users', users.filter(u => u.Username !== p.Username)); return {status:'success'}; }
+    
     if (action === 'getSummary') return get('Summary');
     if (action === 'loadDayData') {
       let summaries = get('Summary');
@@ -509,7 +529,7 @@ const app = {
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     return d.toISOString().split('T')[0];
   })(),
-  dayData: { summary: null, txs: [], denoms: {}, bankTxs: [] },
+  dayData: { summary: null, txs: [], denomsList: [], bankTxs: [] },
   chartInstance: null,
 
   async init() {
@@ -562,11 +582,6 @@ const app = {
     localStorage.setItem('cashbook_theme', newTheme);
   },
 
-  switchTheme() {
-    // Legacy support if needed, but we use toggleTheme now
-    this.toggleTheme();
-  },
-
   goToAppView() {
     document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
     document.getElementById('view-app').classList.add('active');
@@ -590,14 +605,9 @@ const app = {
     
     try {
       let users = await api.req('getUsers');
-      
-      // Handle Google Apps Script returning HTML error pages or empty arrays due to missing setup
-      if (!Array.isArray(users)) {
-        throw new Error("Invalid response from server. Are you sure you published the web app correctly?");
-      }
+      if (!Array.isArray(users)) throw new Error("Invalid server response.");
       
       const found = users.find(x => x.Username === u && x.Password === p);
-      
       if (found) {
         this.user = found;
         sessionStorage.setItem('cashbook_role', found.Role);
@@ -605,20 +615,12 @@ const app = {
         err.style.display = 'none';
         this.route();
       } else {
-        err.innerText = "Invalid credentials. (Note: if you just connected Google Sheets, ensure your Users tab has accounts!)";
+        err.innerText = "Invalid credentials.";
         err.style.display = 'block';
       }
     } catch (error) {
-      err.innerHTML = `Connection Error: ${error.message}<br><button onclick="app.emergencyReset()" class="btn btn-outline mt-4" style="font-size:0.8rem; padding:0.25rem">Emergency Disconnect Google Sheets</button>`;
+      err.innerHTML = `Error: ${error.message}`;
       err.style.display = 'block';
-    }
-  },
-
-  emergencyReset() {
-    if (confirm("Disconnect from Google Sheets and revert to Offline Mode?")) {
-      CONFIG.APPS_SCRIPT_URL = "";
-      alert("Disconnected! You are now in offline mode. You can log in normally.");
-      document.getElementById('login-error').style.display = 'none';
     }
   },
 
@@ -635,12 +637,10 @@ const app = {
   switchTab(tab) {
     document.querySelectorAll('.nav-tab').forEach(e => e.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
-    
     document.querySelectorAll('.tab-content').forEach(e => e.style.display = 'none');
     document.getElementById('tab-content-' + tab).style.display = 'block';
 
-    if (tab === 'daily-entry') this.loadDate();
-    if (tab === 'bank-entry') this.loadDate();
+    if (tab === 'daily-entry' || tab === 'bank-entry') this.loadDate();
     if (tab === 'cash-count') this.renderDenominations();
     if (tab === 'reports') this.loadReports();
   },
@@ -648,7 +648,6 @@ const app = {
   // 2. Admin Logic
   async loadAdmin() {
     this.checkConfigState();
-    
     this.usersCache = await api.req('getUsers');
     const tbody = document.getElementById('admin-users-list');
     tbody.innerHTML = this.usersCache.map(u => `
@@ -657,16 +656,12 @@ const app = {
         <td>${u.Role}</td>
         <td>
            <button class="btn btn-outline" style="padding:0.25rem 0.5rem; margin-right:0.25rem;" onclick="app.editUser('${u.Username}')">Edit</button>
-           ${u.Username !== 'admin' ? `<button class="btn btn-outline" style="padding:0.25rem 0.5rem" onclick="app.deleteUser('${u.Username}')">Delete</button>` : `<span style="font-size:0.75rem;color:var(--text-muted);display:inline-block;padding:0.25rem 0.5rem">Root DB Admin</span>`}
+           ${u.Username !== 'admin' ? `<button class="btn btn-outline" style="padding:0.25rem 0.5rem" onclick="app.deleteUser('${u.Username}')">Delete</button>` : `<span style="font-size:0.75rem;color:var(--text-muted)">Root Admin</span>`}
         </td>
       </tr>
     `).join('');
-
-    // Add button to go to app view
     if (!document.getElementById('btn-admin-to-app')) {
-       tbody.parentElement.parentElement.insertAdjacentHTML('afterend', `
-         <button id="btn-admin-to-app" class="btn btn-outline mt-4" style="width:100%" onclick="app.goToAppView()">Go to Data Entry Mode →</button>
-       `);
+       tbody.parentElement.parentElement.insertAdjacentHTML('afterend', `<button id="btn-admin-to-app" class="btn btn-outline mt-4" style="width:100%" onclick="app.goToAppView()">Go to Data Entry Mode →</button>`);
     }
   },
 
@@ -674,29 +669,25 @@ const app = {
     const q = document.getElementById('admin-search-query').value.toLowerCase();
     if (!q) return;
     const res = document.getElementById('admin-search-results');
-    res.innerHTML = "<em>Deep scanning global Google sheets...</em>";
+    res.innerHTML = "<em>Scanning databanks...</em>";
     try {
-      const txs = await api.req('getTransactions'); // Fetches all historic transactions unfiltered
-      const matches = txs.filter(t => (t.Category||'').toLowerCase().includes(q) || (t.Mode||'').toLowerCase().includes(q));
-      
+      const txs = await api.req('getTransactions');
+      const matches = txs.filter(t => (t.Category||'').toLowerCase().includes(q) || (t.Mode||'').toLowerCase().includes(q) || (t.Details||'').toLowerCase().includes(q) || (t.Name||'').toLowerCase().includes(q));
       let total = 0;
       matches.forEach(m => { if(m.Type === 'Expense') total += Number(m.Amount); });
-      
       res.innerHTML = `
-        <div style="margin-bottom:1rem; font-weight:bold; color:var(--text); padding:0.5rem; background:var(--warning); border-radius:4px; color:black;">
-           Found ${matches.length} matches globally. Mathematical Sum of Tagged Expenses: ₹${total}
+        <div style="margin-bottom:1rem; font-weight:bold; color:black; padding:0.5rem; background:var(--warning); border-radius:4px;">
+           Found ${matches.length} matches. Sum of Tagged Payments: ₹${total}
         </div>
         <div class="table-responsive">
           <table>
-            <thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Mode</th><th>Amount</th><th>Entered By</th></tr></thead>
+            <thead><tr><th>Date</th><th>Type</th><th>Name</th><th>Details</th><th>Mode</th><th>Amount</th></tr></thead>
             <tbody>
-              ${matches.length === 0 ? '<tr><td colspan="6">No historical records found.</td></tr>' : matches.map(m => `<tr><td>${m.Date}</td><td>${m.Type}</td><td>${m.Category}</td><td>${m.Mode}</td><td>₹${m.Amount}</td><td>${m.Entered_by}</td></tr>`).join('')}
+              ${matches.length === 0 ? '<tr><td colspan="6">No records found.</td></tr>' : matches.map(m => `<tr><td>${m.Date}</td><td>${m.Type}</td><td>${m.Name||''}</td><td>${m.Category}</td><td>${m.Mode}</td><td>₹${m.Amount}</td></tr>`).join('')}
             </tbody>
           </table>
         </div>`;
-    } catch(e) {
-       res.innerHTML = `<span class="text-danger">Search failed: ${e.message}</span>`;
-    }
+    } catch(e) { res.innerHTML = `<span class="text-danger">Search failed: ${e.message}</span>`; }
   },
 
   async createUser() {
@@ -704,16 +695,10 @@ const app = {
     const p = document.getElementById('new-password').value;
     const r = document.getElementById('new-role').value;
     if(!u || !p) return alert('Fill fields');
-    
-    try {
-      await api.req('addUser', { Username: u, Password: p, Role: r });
-      document.getElementById('new-username').value = '';
-      document.getElementById('new-password').value = '';
-      await this.loadAdmin();
-    } catch (e) {
-      console.error(e);
-      alert("Error generating user. Please try disconnecting and reconnecting the Google config link.");
-    }
+    await api.req('addUser', { Username: u, Password: p, Role: r });
+    document.getElementById('new-username').value = '';
+    document.getElementById('new-password').value = '';
+    await this.loadAdmin();
   },
 
   editUser(uName) {
@@ -722,7 +707,6 @@ const app = {
     document.getElementById('new-username').disabled = true;
     document.getElementById('new-password').value = u.Password;
     document.getElementById('new-role').value = u.Role;
-    
     document.getElementById('btn-create-user').style.display = 'none';
     document.getElementById('btn-update-user').style.display = 'inline-flex';
   },
@@ -731,46 +715,26 @@ const app = {
     const u = document.getElementById('new-username').value;
     const p = document.getElementById('new-password').value;
     const r = document.getElementById('new-role').value;
-    if(!p) return alert('Password cannot be blank');
-    
-    try {
-      await api.req('editUser', { Username: u, Password: p, Role: r });
-      document.getElementById('new-username').value = '';
-      document.getElementById('new-username').disabled = false;
-      document.getElementById('new-password').value = '';
-      
-      document.getElementById('btn-create-user').style.display = 'inline-flex';
-      document.getElementById('btn-update-user').style.display = 'none';
-      
-      await this.loadAdmin();
-      alert('User Updated successfully!');
-    } catch (e) {
-      console.error(e);
-      alert("Error updating user.");
-    }
+    await api.req('editUser', { Username: u, Password: p, Role: r });
+    document.getElementById('new-username').disabled = false;
+    document.getElementById('btn-create-user').style.display = 'inline-flex';
+    document.getElementById('btn-update-user').style.display = 'none';
+    await this.loadAdmin();
   },
 
   async deleteUser(u) {
-    if(confirm('Delete user?')) {
-      await api.req('deleteUser', { Username: u });
-      this.loadAdmin();
-    }
+    if(confirm('Delete user?')) { await api.req('deleteUser', { Username: u }); this.loadAdmin(); }
   },
 
   saveAppsScriptUrl() {
     const url = document.getElementById('config-apps-url').value.trim();
-    if (!url.startsWith('https://script.google.com/')) return alert('Please enter a valid Google Apps Script URL starting with https://script.google.com/');
+    if (!url.startsWith('https://script.google.com/')) return alert('Invalid URL');
     CONFIG.APPS_SCRIPT_URL = url;
-    alert("Backend URL successfully locked. The app will now sync securely with Google Sheets!");
     this.checkConfigState();
   },
 
   clearAppsScriptUrl() {
-    if (confirm("Are you sure you want to unlock and disconnect from Google Sheets? The app will revert to offline storage.")) {
-      CONFIG.APPS_SCRIPT_URL = "";
-      this.checkConfigState();
-      alert("Backend Configuration Unlocked.");
-    }
+    if (confirm("Disconnect?")) { CONFIG.APPS_SCRIPT_URL = ""; this.checkConfigState(); }
   },
 
   checkConfigState() {
@@ -779,178 +743,56 @@ const app = {
     const saveBtn = document.getElementById('btn-save-url');
     const clearBtn = document.getElementById('btn-clear-url');
     const statusMsg = document.getElementById('config-status-msg');
-    
     if (url) {
        inp.value = "********************************************";
        inp.disabled = true;
        saveBtn.style.display = 'none';
        clearBtn.style.display = 'inline-flex';
-       statusMsg.innerText = "🔌 Connected to Google Sheets securely.";
+       statusMsg.innerText = "🔌 Connected to Google Sheets.";
        statusMsg.style.color = "var(--secondary)";
     } else {
-       inp.value = "";
-       inp.disabled = false;
+       inp.value = ""; inp.disabled = false;
        saveBtn.style.display = 'inline-flex';
        clearBtn.style.display = 'none';
-       statusMsg.innerText = "Currently using: Offline Storage Mode";
+       statusMsg.innerText = "Offline Mode";
        statusMsg.style.color = "var(--text-muted)";
     }
   },
 
   copyExpenses() {
     const exps = this.dayData.txs.filter(t => t.Type === 'Expense');
-    if (exps.length === 0) return alert('No expenses to copy!');
-    
-    let text = `*Expenses for ${this.currentDate}*\n\n`;
+    if (exps.length === 0) return alert('No payments to copy!');
+    let text = `*Payments for ${this.currentDate}*\n\n`;
     let total = 0;
-    exps.forEach(e => {
-      text += `- ${e.Category}: ₹${e.Amount} (${e.Mode})\n`;
-      total += Number(e.Amount);
-    });
-    text += `\n*Total Expenses: ₹${total}*`;
-    
-    navigator.clipboard.writeText(text).then(() => alert('Expenses copied to clipboard! Paste it anywhere.'));
-  },
-
-  exportDailyStatementCSV() {
-    const deps = this.dayData.txs.filter(t => t.Type === 'Deposit');
-    const exps = this.dayData.txs.filter(t => t.Type === 'Expense');
-    const stats = this.getStats();
-
-    let csv = `Daily Account Statement - ${this.currentDate}\n\n`;
-    csv += `Opening Balance,${stats.ob}\n\n`;
-    
-    csv += '--- DEPOSITS ---\n';
-    csv += 'Source,Mode,Amount,Entered By\n';
-    deps.forEach(d => { csv += `"${d.Category}","${d.Mode}",${d.Amount},"${d.Entered_by}"\n`; });
-    csv += `Total Deposits,,,${stats.depTotal}\n\n`;
-
-    csv += '--- EXPENSES ---\n';
-    csv += 'Details,Mode,Amount,Entered By\n';
-    exps.forEach(e => { csv += `"${e.Category}","${e.Mode}",${e.Amount},"${e.Entered_by}"\n`; });
-    csv += `Total Expenses,,,${stats.expTotal}\n\n`;
-
-    csv += `Expected Closing Balance,${stats.cb}\n`;
-    csv += `Status,${this.dayData.summary?.Verified ? 'Verified & Locked' : 'Draft'}\n`;
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `Account_Statement_${this.currentDate}.csv`;
-    a.click();
-  },
-
-  copyDailyStatement() {
-    const stats = this.getStats();
-    const deps = this.dayData.txs.filter(t => t.Type === 'Deposit');
-    const exps = this.dayData.txs.filter(t => t.Type === 'Expense');
-    
-    let text = `*Daily Cash Statement for ${this.currentDate}*\n\n`;
-    text += `*Opening Balance:* ₹${stats.ob}\n\n`;
-    
-    if (deps.length > 0) {
-      text += `*DEPOSITS:*\n`;
-      deps.forEach(d => text += `- ${d.Category}: ₹${d.Amount} (${d.Mode})\n`);
-      text += `Total Deposits: ₹${stats.depTotal}\n\n`;
-    }
-    
-    if (exps.length > 0) {
-      text += `*EXPENSES:*\n`;
-      exps.forEach(e => text += `- ${e.Category}: ₹${e.Amount} (${e.Mode})\n`);
-      text += `Total Expenses: ₹${stats.expTotal}\n\n`;
-    }
-    
-    text += `*Expected Closing Balance:* ₹${stats.cb}\n`;
-    text += `*Status:* ${this.dayData.summary?.Verified ? 'Verified & Locked' : 'Draft'}`;
-    
-    navigator.clipboard.writeText(text).then(() => alert('Daily statement copied to clipboard!'));
-  },
-
-  exportDailyStatementPDF() {
-    const deps = this.dayData.txs.filter(t => t.Type === 'Deposit');
-    const exps = this.dayData.txs.filter(t => t.Type === 'Expense');
-    const stats = this.getStats();
-
-    let html = `<html><head><title>Account Statement ${this.currentDate}</title>
-      <style>
-        body{font-family:sans-serif; padding:20px; line-height:1.5;} 
-        table{width:100%; border-collapse:collapse; margin-top:10px; margin-bottom:20px;} 
-        th,td{padding:8px; border:1px solid #ddd; text-align:left;} 
-        th{background:#f8fafc;}
-        h2{margin-bottom:10px;}
-        .summary-box { background: #f1f5f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;}
-        .row { display: flex; justify-content: space-between; margin-bottom: 5px;}
-      </style>
-      </head><body>
-      <h2>Daily Account Statement</h2>
-      <div class="summary-box">
-         <div class="row"><strong>Date:</strong> <span>${this.currentDate}</span></div>
-         <div class="row"><strong>Status:</strong> <span>${this.dayData.summary?.Verified ? 'Verified & Locked' : 'Draft'}</span></div>
-         <div class="row"><strong>Opening Balance:</strong> <span>₹${stats.ob}</span></div>
-      </div>
-
-      <h3>Deposits</h3>
-      <table><tr><th>Source</th><th>Mode</th><th>Amount</th><th>Entered By</th></tr>`;
-    
-    if (deps.length === 0) html += `<tr><td colspan="4" style="text-align:center">No deposits</td></tr>`;
-    deps.forEach(d => { html += `<tr><td>${d.Category}</td><td>${d.Mode}</td><td>₹${d.Amount}</td><td>${d.Entered_by}</td></tr>`; });
-    html += `<tr><th colspan="2" style="text-align:right">Total Deposits</th><th colspan="2">₹${stats.depTotal}</th></tr></table>`;
-
-    html += `<h3>Expenses</h3>
-      <table><tr><th>Details</th><th>Mode</th><th>Amount</th><th>Entered By</th></tr>`;
-    
-    if (exps.length === 0) html += `<tr><td colspan="4" style="text-align:center">No expenses</td></tr>`;
-    exps.forEach(e => { html += `<tr><td>${e.Category}</td><td>${e.Mode}</td><td>₹${e.Amount}</td><td>${e.Entered_by}</td></tr>`; });
-    html += `<tr><th colspan="2" style="text-align:right">Total Expenses</th><th colspan="2">₹${stats.expTotal}</th></tr></table>`;
-
-    html += `<div class="summary-box" style="margin-top:20px; background:#e2e8f0; font-size:1.1rem;">
-         <div class="row" style="margin:0;"><strong>Expected Closing Balance:</strong> <span>₹${stats.cb}</span></div>
-      </div>
-      <scr` + `ipt>window.onload = function() { window.print(); }</scr` + `ipt></body></html>`;
-    
-    const win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
+    exps.forEach(e => { text += `- ${e.Name||''}: ${e.Category} ₹${e.Amount} (${e.Mode})\n`; total += Number(e.Amount); });
+    text += `\n*Total Payments: ₹${total}*`;
+    navigator.clipboard.writeText(text).then(() => alert('Payments copied!'));
   },
 
   // 3. Daily Entry Logic
   async loadDate() {
     const d = document.getElementById('entry-date').value || (document.getElementById('bank-date') ? document.getElementById('bank-date').value : '') || this.currentDate;
+    this.currentDate = d;
     document.getElementById('entry-date').value = d;
     if (document.getElementById('bank-date')) document.getElementById('bank-date').value = d;
-    this.currentDate = d;
 
     const res = await api.req('loadDayData', null, d);
-    const summaries = res.summaries || [];
-    const txs = res.txs || [];
-    const denoms = res.denoms || [];
-    const bankTxs = res.bankTxs || [];
+    this.dayData.summary = (res.summaries || []).find(s => s.Date === d);
+    this.dayData.txs = res.txs || [];
+    this.dayData.denomsList = res.denoms || [];
+    this.dayData.bankTxs = res.bankTxs || [];
     
-    const summary = summaries.find(s => s.Date === d);
-    
-    this.dayData.summary = summary;
-    this.dayData.txs = txs;
-    this.dayData.denomsList = denoms;
-    this.dayData.bankTxs = bankTxs;
-
-    // Calculate opening balance
-    if (summary) {
-      document.getElementById('opening-balance').value = summary.Opening_Balance || 0;
-      document.getElementById('bank-opening-balance').value = summary.Bank_Opening_Balance || 0;
+    if (this.dayData.summary) {
+      document.getElementById('opening-balance').value = this.dayData.summary.Opening_Balance || 0;
+      document.getElementById('bank-opening-balance').value = this.dayData.summary.Bank_Opening_Balance || 0;
     } else {
-      let prevBal = 0;
-      let prevBankBal = 0;
-      const past = summaries.filter(s => s.Date < d).sort((a,b) => a.Date > b.Date ? -1 : 1);
-      if (past.length > 0) {
-        prevBal = past[0].Closing_Balance || 0;
-        prevBankBal = past[0].Bank_Closing_Balance || 0;
-      }
-      document.getElementById('opening-balance').value = prevBal;
-      document.getElementById('bank-opening-balance').value = prevBankBal;
+      let past = (res.summaries || []).filter(s => s.Date < d).sort((a,b) => a.Date > b.Date ? -1 : 1);
+      document.getElementById('opening-balance').value = past.length > 0 ? (past[0].Closing_Balance || 0) : 0;
+      document.getElementById('bank-opening-balance').value = past.length > 0 ? (past[0].Bank_Closing_Balance || 0) : 0;
     }
 
     this.renderTransactions();
-    if (this.renderBankTransactions) this.renderBankTransactions();
+    this.renderBankTransactions();
     this.applyLocks();
   },
 
@@ -958,656 +800,219 @@ const app = {
     const txs = this.dayData.txs;
     const deps = txs.filter(t => t.Type === 'Deposit');
     const exps = txs.filter(t => t.Type === 'Expense');
-    
     const isVerified = this.dayData.summary?.Verified;
 
-    const mkRow = (t) => {
-      const isOwner = t.Entered_by === app.user.Username;
-      const isAdmin = app.user.Role === 'Admin';
-      const allowDelete = !isVerified && (isAdmin || isOwner);
-
+    const mkRow = (t, isExp) => {
+      const allowDelete = !isVerified && (app.user.Role === 'Admin' || t.Entered_by === app.user.Username);
       return `<tr>
         <td>${t.Mode}</td>
+        ${isExp ? `<td>${t.Name||''}</td>` : ''}
         <td>${t.Category}</td>
         <td style="font-weight:bold;">₹${t.Amount}</td>
-        ${allowDelete ? `<td style="text-align:right"><button class="btn btn-outline" style="padding:0.2rem 0.4rem" onclick="app.delTx('${t.ID}')">X</button></td>` : `<td style="text-align:right"><span style="font-size:0.7rem;color:var(--text-muted)">locked</span></td>`}
+        <td style="text-align:right">${allowDelete ? `<button class="btn btn-outline" style="padding:0.2rem 0.4rem" onclick="app.delTx('${t.ID}')">X</button>` : '<span style="font-size:0.7rem;color:var(--text-muted)">locked</span>'}</td>
       </tr>`;
     };
 
-    document.getElementById('deposits-list').innerHTML = deps.map(mkRow).join('') || '<tr><td colspan="4">No deposits</td></tr>';
-    document.getElementById('expenses-list').innerHTML = exps.map(mkRow).join('') || '<tr><td colspan="4">No expenses</td></tr>';
-    
+    document.getElementById('deposits-list').innerHTML = deps.map(t => mkRow(t, false)).join('') || '<tr><td colspan="4">No receipts</td></tr>';
+    document.getElementById('expenses-list').innerHTML = exps.map(t => mkRow(t, true)).join('') || '<tr><td colspan="5">No payments</td></tr>';
     this.updateClosing();
   },
 
   async addTransaction(type) {
-    if (this.dayData.summary?.Verified) return alert('Day is locked!');
+    if (this.dayData.summary?.Verified) return alert('Locked!');
+    const isDep = type === 'Deposit';
+    const mode = document.getElementById(isDep ? 'dep-mode' : 'exp-mode').value;
+    const name = isDep ? '' : document.getElementById('exp-name').value;
+    const cat = document.getElementById(isDep ? 'dep-source' : 'exp-details').value;
+    const amt = document.getElementById(isDep ? 'dep-amount' : 'exp-amount').value;
     
-    const mode = type === 'Deposit' ? document.getElementById('dep-mode').value : document.getElementById('exp-mode').value;
-    const cat = type === 'Deposit' ? document.getElementById('dep-source').value : document.getElementById('exp-source').value;
-    const amt = type === 'Deposit' ? document.getElementById('dep-amount').value : document.getElementById('exp-amount').value;
-    
-    if(!cat || !amt) return alert('Enter source/details and amount');
-
-    const tx = {
-      ID: Date.now().toString(),
-      Date: this.currentDate,
-      Type: type,
-      Mode: mode,
-      Category: cat,
-      Amount: Number(amt),
-      Entered_by: this.user.Username,
-      Timestamp: new Date().toISOString()
-    };
-
-    // Instant Optimistic UI Update (0 delay)
+    if(!cat || !amt) return alert('Fill fields');
+    const tx = { ID: Date.now().toString(), Date: this.currentDate, Type: type, Mode: mode, Name: name, Category: cat, Amount: Number(amt), Entered_by: this.user.Username, Timestamp: new Date().toISOString() };
     this.dayData.txs.push(tx);
     this.renderTransactions();
-    
-    if(type === 'Deposit') { document.getElementById('dep-source').value = ''; document.getElementById('dep-amount').value = ''; }
-    else { document.getElementById('exp-source').value = ''; document.getElementById('exp-amount').value = ''; }
-
-    // Background process to Google Sheets
-    api.req('saveTransaction', tx, this.currentDate).catch(e => {
-       console.error(e);
-       alert("Background Sync Error: Could not save transaction to Google Sheets.");
-    });
+    document.getElementById(isDep ? 'dep-source' : 'exp-details').value = '';
+    document.getElementById(isDep ? 'dep-amount' : 'exp-amount').value = '';
+    if(!isDep) document.getElementById('exp-name').value = '';
+    api.req('saveTransaction', tx, this.currentDate);
   },
 
   async delTx(txID) {
-    // Instant Optimistic UI Update
     this.dayData.txs = this.dayData.txs.filter(t => t.ID !== txID);
     this.renderTransactions();
-
-    // Background process to Google Sheets
-    api.req('deleteTransaction', { ID: txID, Date: this.currentDate }).catch(e => {
-      console.error(e);
-      alert("Background Sync Error: Could not delete transaction from Google Sheets.");
-    });
+    api.req('deleteTransaction', { ID: txID, Date: this.currentDate });
   },
 
   renderBankTransactions() {
     const bTxs = this.dayData.bankTxs;
-    const creds = bTxs.filter(t => t.Type === 'Credit');
-    const debs = bTxs.filter(t => t.Type === 'Debit');
-    
     const isVerified = this.dayData.summary?.Verified;
-
     const mkRow = (t) => {
-      const isOwner = t.Entered_by === app.user.Username;
-      const isAdmin = app.user.Role === 'Admin';
-      const allowDelete = !isVerified && (isAdmin || isOwner);
-
-      return `<tr>
-        <td><small>${t.Reference}</small></td>
-        <td>${t.Description}</td>
-        <td style="font-weight:bold;">₹${t.Amount}</td>
-        ${allowDelete ? `<td style="text-align:right"><button class="btn btn-outline" style="padding:0.2rem 0.4rem" onclick="app.delBankTx('${t.ID}')">X</button></td>` : `<td style="text-align:right"><span style="font-size:0.7rem;color:var(--text-muted)">locked</span></td>`}
-      </tr>`;
+      const allowDelete = !isVerified && (app.user.Role === 'Admin' || t.Entered_by === app.user.Username);
+      return `<tr><td>${t.Mode||'Bank'}</td><td><small>${t.Reference}</small></td><td>${t.Description}</td><td style="font-weight:bold;">₹${t.Amount}</td><td style="text-align:right">${allowDelete ? `<button class="btn btn-outline" style="padding:0.2rem 0.4rem" onclick="app.delBankTx('${t.ID}')">X</button>` : '<span style="font-size:0.7rem;color:var(--text-muted)">locked</span>'}</td></tr>`;
     };
-
-    document.getElementById('bank-credits-list').innerHTML = creds.map(mkRow).join('') || '<tr><td colspan="4">No credits</td></tr>';
-    document.getElementById('bank-debits-list').innerHTML = debs.map(mkRow).join('') || '<tr><td colspan="4">No debits</td></tr>';
-    
+    document.getElementById('bank-credits-list').innerHTML = bTxs.filter(t => t.Type === 'Credit').map(mkRow).join('') || '<tr><td colspan="5">No receipts</td></tr>';
+    document.getElementById('bank-debits-list').innerHTML = bTxs.filter(t => t.Type === 'Debit').map(mkRow).join('') || '<tr><td colspan="5">No payments</td></tr>';
     this.updateBankClosing();
   },
 
-  getBankStats() {
-    const txs = this.dayData.bankTxs;
-    let credTotal = 0, debTotal = 0;
-    txs.forEach(t => {
-      if(t.Type === 'Credit') credTotal += Number(t.Amount);
-      else if(t.Type === 'Debit') debTotal += Number(t.Amount);
-    });
-    const ob = Number(document.getElementById('bank-opening-balance').value) || 0;
-    const cb = ob + credTotal - debTotal;
-    return { ob, credTotal, debTotal, cb };
-  },
-
-  updateBankClosing() {
-    const stats = this.getBankStats();
-    document.getElementById('bank-closing-balance').innerText = `₹${stats.cb}`;
-  },
-
-  copyBankStatement() {
-    const stats = this.getBankStats();
-    const creds = this.dayData.bankTxs.filter(t => t.Type === 'Credit');
-    const debs = this.dayData.bankTxs.filter(t => t.Type === 'Debit');
-    
-    let text = `*Bank Statement for ${this.currentDate}*\n\n`;
-    text += `*Opening Balance:* ₹${stats.ob}\n\n`;
-    
-    if (creds.length > 0) {
-      text += `*CREDITS:*\n`;
-      creds.forEach(c => text += `- ${c.Description}: ₹${c.Amount} (Ref: ${c.Reference})\n`);
-      text += `Total Credits: ₹${stats.credTotal}\n\n`;
-    }
-    
-    if (debs.length > 0) {
-      text += `*DEBITS:*\n`;
-      debs.forEach(d => text += `- ${d.Description}: ₹${d.Amount} (Ref: ${d.Reference})\n`);
-      text += `Total Debits: ₹${stats.debTotal}\n\n`;
-    }
-    
-    text += `*Closing Balance:* ₹${stats.cb}`;
-    
-    navigator.clipboard.writeText(text).then(() => alert('Bank statement copied to clipboard!'));
-  },
-
-  exportBankStatementPDF() {
-    const stats = this.getBankStats();
-    const creds = this.dayData.bankTxs.filter(t => t.Type === 'Credit');
-    const debs = this.dayData.bankTxs.filter(t => t.Type === 'Debit');
-
-    let html = `<html><head><title>Bank Statement ${this.currentDate}</title>
-      <style>
-        body{font-family:sans-serif; padding:20px; line-height:1.5;} 
-        table{width:100%; border-collapse:collapse; margin-top:10px; margin-bottom:20px;} 
-        th,td{padding:8px; border:1px solid #ddd; text-align:left;} 
-        th{background:#f8fafc;}
-        h2{margin-bottom:10px;}
-        .summary-box { background: #f1f5f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;}
-        .row { display: flex; justify-content: space-between; margin-bottom: 5px;}
-      </style>
-      </head><body>
-      <h2>Daily Bank Statement</h2>
-      <div class="summary-box">
-         <div class="row"><strong>Date:</strong> <span>${this.currentDate}</span></div>
-         <div class="row"><strong>Opening Balance:</strong> <span>₹${stats.ob}</span></div>
-      </div>
-
-      <h3>Credits (Deposits)</h3>
-      <table><tr><th>Ref</th><th>Source</th><th>Amount</th></tr>`;
-    
-    if (creds.length === 0) html += `<tr><td colspan="3" style="text-align:center">No credits</td></tr>`;
-    creds.forEach(d => { html += `<tr><td>${d.Reference}</td><td>${d.Description}</td><td>₹${d.Amount}</td></tr>`; });
-    html += `<tr><th colspan="2" style="text-align:right">Total Credits</th><th>₹${stats.credTotal}</th></tr></table>`;
-
-    html += `<h3>Debits (Payments)</h3>
-      <table><tr><th>Ref</th><th>Details</th><th>Amount</th></tr>`;
-    
-    if (debs.length === 0) html += `<tr><td colspan="3" style="text-align:center">No debits</td></tr>`;
-    debs.forEach(e => { html += `<tr><td>${e.Reference}</td><td>${e.Description}</td><td>₹${e.Amount}</td></tr>`; });
-    html += `<tr><th colspan="2" style="text-align:right">Total Debits</th><th>₹${stats.debTotal}</th></tr></table>`;
-
-    html += `<div class="summary-box" style="margin-top:20px; background:#e2e8f0; font-size:1.1rem;">
-         <div class="row" style="margin:0;"><strong>Expected Closing Balance:</strong> <span>₹${stats.cb}</span></div>
-      </div>
-      <scr` + `ipt>window.onload = function() { window.print(); }</scr` + `ipt></body></html>`;
-    
-    const win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-  },
-
   async addBankTransaction(type) {
-    if (this.dayData.summary?.Verified) return alert('Day is locked!');
-    
-    const ref = type === 'Credit' ? document.getElementById('bank-cred-ref').value : document.getElementById('bank-deb-ref').value;
-    const desc = type === 'Credit' ? document.getElementById('bank-cred-desc').value : document.getElementById('bank-deb-desc').value;
-    const amt = type === 'Credit' ? document.getElementById('bank-cred-amount').value : document.getElementById('bank-deb-amount').value;
-    
-    if(!desc || !amt) return alert('Enter description and amount');
-
-    const tx = {
-      ID: Date.now().toString(),
-      Date: this.currentDate,
-      Type: type,
-      Reference: ref,
-      Description: desc,
-      Amount: Number(amt),
-      Entered_by: this.user.Username,
-      Timestamp: new Date().toISOString()
-    };
-
+    if (this.dayData.summary?.Verified) return alert('Locked!');
+    const isCred = type === 'Credit';
+    const mode = document.getElementById(isCred ? 'bank-cred-mode' : 'bank-deb-mode').value;
+    const ref = document.getElementById(isCred ? 'bank-cred-ref' : 'bank-deb-ref').value;
+    const desc = document.getElementById(isCred ? 'bank-cred-desc' : 'bank-deb-desc').value;
+    const amt = document.getElementById(isCred ? 'bank-cred-amount' : 'bank-deb-amount').value;
+    if(!desc || !amt) return alert('Fill fields');
+    const tx = { ID: Date.now().toString(), Date: this.currentDate, Type: type, Mode: mode, Reference: ref, Description: desc, Amount: Number(amt), Entered_by: this.user.Username, Timestamp: new Date().toISOString() };
     this.dayData.bankTxs.push(tx);
     this.renderBankTransactions();
-    
-    if(type === 'Credit') { document.getElementById('bank-cred-ref').value = ''; document.getElementById('bank-cred-desc').value = ''; document.getElementById('bank-cred-amount').value = ''; }
-    else { document.getElementById('bank-deb-ref').value = ''; document.getElementById('bank-deb-desc').value = ''; document.getElementById('bank-deb-amount').value = ''; }
-
-    api.req('saveBankTransaction', tx, this.currentDate).catch(e => {
-       console.error(e);
-       alert("Sync Error: Could not save bank transaction.");
-    });
+    api.req('saveBankTransaction', tx, this.currentDate);
   },
 
   async delBankTx(txID) {
     this.dayData.bankTxs = this.dayData.bankTxs.filter(t => t.ID !== txID);
     this.renderBankTransactions();
-
-    api.req('deleteBankTransaction', { ID: txID, Date: this.currentDate }).catch(e => {
-      console.error(e);
-      alert("Sync Error: Could not delete bank transaction.");
-    });
-  },
-
-  exportBankStatementCSV() {
-    const creds = this.dayData.bankTxs.filter(t => t.Type === 'Credit');
-    const debs = this.dayData.bankTxs.filter(t => t.Type === 'Debit');
-
-    let csv = `Bank Transaction Statement - ${this.currentDate}\n\n`;
-    
-    csv += '--- CREDITS (DEPOSITS) ---\n';
-    csv += 'Ref,Description,Amount,Entered By\n';
-    creds.forEach(d => { csv += `"${d.Reference}","${d.Description}",${d.Amount},"${d.Entered_by}"\n`; });
-
-    csv += '\n--- DEBITS (PAYMENTS) ---\n';
-    csv += 'Ref,Description,Amount,Entered By\n';
-    debs.forEach(e => { csv += `"${e.Reference}","${e.Description}",${e.Amount},"${e.Entered_by}"\n`; });
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `Bank_Statement_${this.currentDate}.csv`;
-    a.click();
+    api.req('deleteBankTransaction', { ID: txID, Date: this.currentDate });
   },
 
   getStats() {
-    const txs = this.dayData.txs;
     let depTotal = 0, expTotal = 0;
-    txs.forEach(t => {
-      if(t.Type === 'Deposit') depTotal += Number(t.Amount);
-      else if(t.Type === 'Expense') expTotal += Number(t.Amount);
-    });
+    this.dayData.txs.forEach(t => { if(t.Type === 'Deposit') depTotal += Number(t.Amount); else expTotal += Number(t.Amount); });
     const ob = Number(document.getElementById('opening-balance').value) || 0;
-    const cb = ob + depTotal - expTotal;
-    return { ob, depTotal, expTotal, cb };
+    return { ob, depTotal, expTotal, cb: ob + depTotal - expTotal };
   },
 
-  updateClosing() {
-    const stats = this.getStats();
-    document.getElementById('closing-balance').innerText = `₹${stats.cb}`;
+  updateClosing() { const s = this.getStats(); document.getElementById('closing-balance').innerText = `₹${s.cb}`; },
+
+  getBankStats() {
+    let credTotal = 0, debTotal = 0;
+    this.dayData.bankTxs.forEach(t => { if(t.Type === 'Credit') credTotal += Number(t.Amount); else debTotal += Number(t.Amount); });
+    const ob = Number(document.getElementById('bank-opening-balance').value) || 0;
+    return { ob, credTotal, debTotal, cb: ob + credTotal - debTotal };
   },
+
+  updateBankClosing() { const s = this.getBankStats(); document.getElementById('bank-closing-balance').innerText = `₹${s.cb}`; },
 
   applyLocks() {
     const v = this.dayData.summary?.Verified;
-    const b = document.getElementById('day-status-badge');
-    const uBtn = document.getElementById('btn-unlock-day');
-
-    if (v) {
-      b.className = 'badge badge-success';
-      b.innerText = 'Verified & Locked';
-      uBtn.style.display = this.user.Role === 'Admin' ? 'inline-block' : 'none';
-    } else {
-      b.className = 'badge';
-      b.innerText = 'Draft';
-      uBtn.style.display = 'none';
-    }
-
+    document.getElementById('day-status-badge').className = v ? 'badge badge-success' : 'badge';
+    document.getElementById('day-status-badge').innerText = v ? 'Verified & Locked' : 'Draft';
+    document.getElementById('bank-day-status-badge').innerText = v ? 'Locked' : 'Draft';
+    document.getElementById('btn-unlock-day').style.display = (v && this.user.Role === 'Admin') ? 'inline-block' : 'none';
     document.getElementById('opening-balance').disabled = v;
     document.getElementById('bank-opening-balance').disabled = v;
     document.getElementById('deposit-form').style.display = v ? 'none' : 'flex';
     document.getElementById('expense-form').style.display = v ? 'none' : 'flex';
     document.getElementById('btn-save-draft').style.display = v ? 'none' : 'inline-flex';
     document.getElementById('btn-bank-save-draft').style.display = v ? 'none' : 'inline-flex';
-    
-    const bb = document.getElementById('bank-day-status-badge');
-    if (v) {
-      bb.className = 'badge badge-success';
-      bb.innerText = 'Locked';
-    } else {
-      bb.className = 'badge';
-      bb.innerText = 'Draft';
-    }
   },
 
   async unlockDay() {
-    if (!confirm('Are you sure you want to unlock this day? This will allow edits by anyone.')) return;
-    
+    if (!confirm('Unlock day?')) return;
     this.dayData.summary.Verified = false;
     await api.req('saveSummary', this.dayData.summary);
-    
-    alert("Day Unlocked successfully!");
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('report-from').value = today;
-    document.getElementById('report-to').value = today;
-    
     this.loadDate();
   },
 
   async saveDraft() {
-    const stats = this.getStats();
-    const bStats = this.getBankStats();
-    await api.req('saveSummary', {
-      Date: this.currentDate,
-      Opening_Balance: stats.ob,
-      Total_Deposits: stats.depTotal,
-      Total_Expenses: stats.expTotal,
-      Closing_Balance: stats.cb,
-      Bank_Opening_Balance: bStats.ob,
-      Bank_Total_Credits: bStats.credTotal,
-      Bank_Total_Debits: bStats.debTotal,
-      Bank_Closing_Balance: bStats.cb,
-      Verified: false
-    });
-    alert('Draft Saved!');
+    const s = this.getStats(); const b = this.getBankStats();
+    await api.req('saveSummary', { Date: this.currentDate, Opening_Balance: s.ob, Total_Deposits: s.depTotal, Total_Expenses: s.expTotal, Closing_Balance: s.cb, Bank_Opening_Balance: b.ob, Bank_Total_Credits: b.credTotal, Bank_Total_Debits: b.debTotal, Bank_Closing_Balance: b.cb, Verified: false });
+    alert('Saved!');
   },
 
-  // 4. Denomination Logic
   async renderDenominations() {
-    const dStr = this.currentDate;
     const denoms = this.dayData.denomsList || [];
-    const map = {};
-    denoms.forEach(d => map[d.Denomination] = d.Count);
-    
+    const map = {}; denoms.forEach(d => map[d.Denomination] = d.Count);
     const v = this.dayData.summary?.Verified;
-
-    const tbody = document.getElementById('denom-table');
-    tbody.innerHTML = CONFIG.DENOMINATIONS.map(d => `
-      <tr>
-        <td style="font-weight:600">₹ ${d}</td>
-        <td><input type="number" min="0" data-denom="${d}" class="denom-input" value="${map[d] || ''}" onkeyup="app.calcDenom()" onchange="app.calcDenom()" ${v ? 'disabled':''}></td>
-        <td id="denom-amt-${d}" style="font-weight:bold;">₹ 0</td>
-      </tr>
-    `).join('');
-
+    document.getElementById('denom-table').innerHTML = CONFIG.DENOMINATIONS.map(d => `<tr><td>₹ ${d}</td><td><input type="number" min="0" data-denom="${d}" class="denom-input" value="${map[d] || ''}" onkeyup="app.calcDenom()" ${v ? 'disabled':''}></td><td id="denom-amt-${d}">₹ 0</td></tr>`).join('');
     document.getElementById('denom-remarks').value = this.dayData.summary?.Remarks || '';
     document.getElementById('btn-verify-day').style.display = v ? 'none' : 'block';
-
     this.calcDenom();
   },
 
   calcDenom() {
     let total = 0;
     document.querySelectorAll('.denom-input').forEach(inp => {
-      const d = Number(inp.dataset.denom);
-      const val = Number(inp.value) || 0;
-      const amt = d * val;
-      total += amt;
-      document.getElementById(`denom-amt-${d}`).innerText = `₹ ${amt}`;
+      const d = Number(inp.dataset.denom), val = Number(inp.value) || 0, amt = d * val;
+      total += amt; document.getElementById(`denom-amt-${d}`).innerText = `₹ ${amt}`;
     });
-    
     document.getElementById('denom-actual').innerText = `₹ ${total}`;
-    
-    const stats = this.getStats();
-    document.getElementById('denom-expected').innerText = `₹ ${stats.cb}`;
-
-    const variance = total - stats.cb;
-    const vDiv = document.getElementById('denom-variance');
-    const vCard = document.getElementById('denom-variance-card');
-    const reqRemarks = document.getElementById('remarks-group');
-    
-    if (variance === 0) {
-      vDiv.innerText = "✅ Matches perfectly";
-      vDiv.style.color = "var(--secondary)";
-      vCard.style.borderColor = "var(--secondary)";
-      reqRemarks.style.display = "none";
-    } else {
-      vDiv.innerText = variance > 0 ? `⚠️ Excess ₹${variance}` : `⚠️ Shortage ₹${Math.abs(variance)}`;
-      vDiv.style.color = "var(--danger)";
-      vCard.style.borderColor = "var(--warning)";
-      reqRemarks.style.display = "block";
-    }
+    const s = this.getStats(); document.getElementById('denom-expected').innerText = `₹ ${s.cb}`;
+    const variance = total - s.cb;
+    document.getElementById('denom-variance').innerText = variance === 0 ? "✅ Matches" : (variance > 0 ? `⚠️ Excess ₹${variance}` : `⚠️ Shortage ₹${Math.abs(variance)}`);
+    document.getElementById('remarks-group').style.display = variance === 0 ? "none" : "block";
   },
 
   async verifyDay() {
-    const stats = this.getStats();
-    const bStats = this.getBankStats();
-    
-    // Get physical total
-    let totalPhy = 0;
-    const payload = [];
+    const s = this.getStats(); const b = this.getBankStats();
+    let totalPhy = 0; const payload = [];
     document.querySelectorAll('.denom-input').forEach(inp => {
-      const d = Number(inp.dataset.denom);
-      const c = Number(inp.value) || 0;
+      const d = Number(inp.dataset.denom), c = Number(inp.value) || 0;
       if (c > 0) payload.push({ Date: this.currentDate, Denomination: d, Count: c, Amount: d * c });
       totalPhy += (d * c);
     });
-
-    const variance = totalPhy - stats.cb;
-    const rem = document.getElementById('denom-remarks').value;
-
-    if (variance !== 0 && rem.trim() === '') return alert("Remarks are mandatory for variance!");
-
-    // Save Denominations
+    const variance = totalPhy - s.cb, rem = document.getElementById('denom-remarks').value;
+    if (variance !== 0 && rem.trim() === '') return alert("Remarks mandatory!");
     await api.req('saveDenominations', payload, this.currentDate);
-
-    // Save Summary as Verified
-    await api.req('saveSummary', {
-      Date: this.currentDate,
-      Opening_Balance: stats.ob,
-      Total_Deposits: stats.depTotal,
-      Total_Expenses: stats.expTotal,
-      Closing_Balance: stats.cb,
-      Bank_Opening_Balance: bStats.ob,
-      Bank_Total_Credits: bStats.credTotal,
-      Bank_Total_Debits: bStats.debTotal,
-      Bank_Closing_Balance: bStats.cb,
-      Verified: true,
-      Variance: variance,
-      Remarks: rem,
-      Counted_By: this.user.Username,
-      Verified_By: this.user.Username
-    });
-
-    alert("Day Verified & Locked!");
-    this.switchTab('daily-entry');
-  },
-
-  printShiftSlip() {
-    const stats = this.getStats();
-    let html = `<html><head><title>Shift Handover Slip</title>
-      <style>
-        @media print { @page { size: auto; margin: 0; } }
-        body{font-family:'Courier New', monospace; width: 300px; padding:10px; margin:0 auto; font-size:12px; line-height:1.2; text-align:center;}
-        .line { border-bottom: 1px dashed #000; margin: 10px 0; }
-        .row { display: flex; justify-content: space-between; margin-bottom:4px; text-align:left;}
-      </style>
-      </head><body>
-      <h3>CASH HANDOVER SLIP</h3>
-      <div>Date: ${this.currentDate}</div>
-      <div>Time: ${new Date().toLocaleTimeString()}</div>
-      <div>Staff: ${this.user.Username}</div>
-      <div class="line"></div>
-      <div class="row"><span>Opening Balance:</span><span>₹${stats.ob}</span></div>
-      <div class="row"><span>Total Deposits:</span><span>₹${stats.depTotal}</span></div>
-      <div class="row"><span>Total Expenses:</span><span>₹${stats.expTotal}</span></div>
-      <div class="row"><strong>System Expected:</strong><strong>₹${stats.cb}</strong></div>
-      <div class="line"></div>
-      <h4>PHYSICAL CASH</h4>`;
-      
-    let counted = 0;
-    document.querySelectorAll('.denom-input').forEach(inp => {
-       const d = Number(inp.dataset.denom);
-       const c = Number(inp.value) || 0;
-       if (c > 0) {
-          html += `<div class="row"><span>₹${d} x ${c}</span><span>₹${d*c}</span></div>`;
-          counted += (d*c);
-       }
-    });
-
-    html += `<div class="line"></div>
-      <div class="row"><strong>Cash Counted:</strong><strong>₹${counted}</strong></div>
-      <div class="row"><span>Variance:</span><span>${counted - stats.cb}</span></div>
-      <div style="margin-top:20px; text-align:left;">Manager Sign:</div>
-      <div style="margin-top:20px; border-bottom:1px solid #000;"></div>
-      <div style="margin-top:5px; text-align:left;">Cashier Sign:</div>
-      <div style="margin-top:20px; border-bottom:1px solid #000;"></div>
-      <scr` + `ipt>window.onload = function() { window.print(); }</scr` + `ipt></body></html>`;
-      
-    const win = window.open('', '_blank', 'width=400,height=600');
-    win.document.write(html);
-    win.document.close();
+    await api.req('saveSummary', { Date: this.currentDate, Opening_Balance: s.ob, Total_Deposits: s.depTotal, Total_Expenses: s.expTotal, Closing_Balance: s.cb, Bank_Opening_Balance: b.ob, Bank_Total_Credits: b.credTotal, Bank_Total_Debits: b.debTotal, Bank_Closing_Balance: b.cb, Verified: true, Variance: variance, Remarks: rem, Counted_By: this.user.Username, Verified_By: this.user.Username });
+    alert("Verified!"); this.switchTab('daily-entry');
   },
 
   // 5. Reports
   async loadReports() {
     let summaries = await api.req('getSummary');
-    const from = document.getElementById('report-from').value;
-    const to = document.getElementById('report-to').value;
-    const type = document.getElementById('report-type').value;
-
-    // Filter by date range
-    let filtered = summaries.filter(s => s.Date >= from && s.Date <= to);
-    filtered = filtered.sort((a,b) => a.Date > b.Date ? -1 : 1);
-    
+    const from = document.getElementById('report-from').value, to = document.getElementById('report-to').value, type = document.getElementById('report-type').value;
+    let filtered = summaries.filter(s => s.Date >= from && s.Date <= to).sort((a,b) => a.Date > b.Date ? -1 : 1);
     const isBank = type === 'bank';
-    
     document.getElementById('reports-list').innerHTML = filtered.map(s => {
-      const ob = isBank ? (s.Bank_Opening_Balance || 0) : (s.Opening_Balance || 0);
-      const dep = isBank ? (s.Bank_Total_Credits || 0) : (s.Total_Deposits || 0);
-      const exp = isBank ? (s.Bank_Total_Debits || 0) : (s.Total_Expenses || 0);
-      const cb = isBank ? (s.Bank_Closing_Balance || 0) : (s.Closing_Balance || 0);
-      
-      return `
-        <tr>
-          <td><b>${s.Date}</b></td>
-          <td>₹${ob}</td>
-          <td class="text-success">₹${dep}</td>
-          <td class="text-danger">₹${exp}</td>
-          <td><b>₹${cb}</b></td>
-          <td>${s.Verified ? '<span class="badge badge-success">Verified</span>' : '<span class="badge">Draft</span>'}</td>
-        </tr>
-      `;
-    }).join('') || '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No records found for this range.</td></tr>';
+      const ob = isBank ? s.Bank_Opening_Balance : s.Opening_Balance, dep = isBank ? s.Bank_Total_Credits : s.Total_Deposits, exp = isBank ? s.Bank_Total_Debits : s.Total_Expenses, cb = isBank ? s.Bank_Closing_Balance : s.Closing_Balance;
+      return `<tr><td><b>${s.Date}</b></td><td>₹${ob||0}</td><td class="text-success">₹${dep||0}</td><td class="text-danger">₹${exp||0}</td><td><b>₹${cb||0}</b></td><td>${s.Verified ? 'Verified' : 'Draft'}</td></tr>`;
+    }).join('') || '<tr><td colspan="6" style="text-align:center">No records</td></tr>';
 
-    // Generate Visual Chart
-    if (this.chartInstance) { this.chartInstance.destroy(); }
-    if (filtered.length > 0 && typeof Chart !== 'undefined') {
-      const ctx = document.getElementById('reportsChart').getContext('2d');
-      document.getElementById('reportsChart').style.display = 'block';
-      
+    if (this.chartInstance) this.chartInstance.destroy();
+    if (filtered.length > 0) {
       const totalDep = filtered.reduce((a, b) => a + (Number(isBank ? b.Bank_Total_Credits : b.Total_Deposits) || 0), 0);
       const totalExp = filtered.reduce((a, b) => a + (Number(isBank ? b.Bank_Total_Debits : b.Total_Expenses) || 0), 0);
-      const netBal = totalDep - totalExp;
-
-      this.chartInstance = new Chart(ctx, {
+      this.chartInstance = new Chart(document.getElementById('reportsChart').getContext('2d'), {
          type: 'doughnut',
-         data: {
-            labels: [isBank ? 'Total Credits' : 'Total Deposits', isBank ? 'Total Debits' : 'Total Expenses'],
-            datasets: [
-               { 
-                 data: [totalDep, totalExp], 
-                 backgroundColor: ['#10B981', '#EF4444'],
-                 borderWidth: 0,
-                 hoverOffset: 4
-               }
-            ]
-         },
-         options: { 
-           responsive: true, 
-           maintainAspectRatio: false,
-           animation: { duration: 0 },
-           plugins: {
-             legend: { position: 'bottom' },
-             tooltip: { 
-               callbacks: {
-                 label: function(item) {
-                   return `${item.label}: ₹${item.raw.toLocaleString()}`;
-                 }
-               }
-             }
-           },
-           cutout: '75%'
-         },
-         plugins: [{
-           id: 'centerText',
-           afterDraw: (chart) => {
-             const { ctx, chartArea: { left, top, right, bottom } } = chart;
-             ctx.save();
-             ctx.font = 'bold 1.1rem sans-serif';
-             ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text');
-             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-             ctx.fillText(isBank ? 'Net Bank' : 'Net Cash', (left + right) / 2, (top + bottom) / 2 - 10);
-             ctx.font = 'bold 1.3rem sans-serif';
-             ctx.fillText(`₹${netBal.toLocaleString()}`, (left + right) / 2, (top + bottom) / 2 + 15);
-             ctx.restore();
-           }
-         }]
+         data: { labels: ['Receipts', 'Payments'], datasets: [{ data: [totalDep, totalExp], backgroundColor: ['#10B981', '#EF4444'], borderWidth: 0 }] },
+         options: { responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, cutout: '75%' }
       });
-    } else {
-      document.getElementById('reportsChart').style.display = 'none';
     }
   },
 
   async copyFullReport() {
-    const from = document.getElementById('report-from').value;
-    const to = document.getElementById('report-to').value;
-    const type = document.getElementById('report-type').value;
-    const isBank = type === 'bank';
-    
+    const from = document.getElementById('report-from').value, to = document.getElementById('report-to').value, type = document.getElementById('report-type').value, isBank = type === 'bank';
     let summaries = await api.req('getSummary');
     let filtered = summaries.filter(s => s.Date >= from && s.Date <= to).sort((a,b) => a.Date > b.Date ? 1 : -1);
-    
-    let text = `*Financial Report (${type.toUpperCase()})*\nRange: ${from} to ${to}\n\n`;
-    filtered.forEach(s => {
-      const dep = isBank ? s.Bank_Total_Credits : s.Total_Deposits;
-      const exp = isBank ? s.Bank_Total_Debits : s.Total_Expenses;
-      const cb = isBank ? s.Bank_Closing_Balance : s.Closing_Balance;
-      text += `${s.Date}: In ₹${dep} | Out ₹${exp} | Bal ₹${cb}\n`;
-    });
-    
-    navigator.clipboard.writeText(text).then(() => alert('Report copied!'));
+    let text = `*Report (${type.toUpperCase()})* ${from} to ${to}\n\n`;
+    filtered.forEach(s => { text += `${s.Date}: Rec ₹${isBank?s.Bank_Total_Credits:s.Total_Deposits} | Pay ₹${isBank?s.Bank_Total_Debits:s.Total_Expenses} | Bal ₹${isBank?s.Bank_Closing_Balance:s.Closing_Balance}\n`; });
+    navigator.clipboard.writeText(text).then(() => alert('Copied!'));
   },
 
   async exportFullReportCSV() {
-    const from = document.getElementById('report-from').value;
-    const to = document.getElementById('report-to').value;
-    const type = document.getElementById('report-type').value;
-    const isBank = type === 'bank';
-    
+    const from = document.getElementById('report-from').value, to = document.getElementById('report-to').value, type = document.getElementById('report-type').value, isBank = type === 'bank';
     let summaries = await api.req('getSummary');
     let filtered = summaries.filter(s => s.Date >= from && s.Date <= to).sort((a,b) => a.Date > b.Date ? 1 : -1);
-    
-    let csv = "Date,Opening,Deposits/Credits,Expenses/Debits,Closing,Status\n";
-    filtered.forEach(s => {
-      const ob = isBank ? s.Bank_Opening_Balance : s.Opening_Balance;
-      const dep = isBank ? s.Bank_Total_Credits : s.Total_Deposits;
-      const exp = isBank ? s.Bank_Total_Debits : s.Total_Expenses;
-      const cb = isBank ? s.Bank_Closing_Balance : s.Closing_Balance;
-      csv += `${s.Date},${ob},${dep},${exp},${cb},${s.Verified?'Verified':'Draft'}\n`;
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Report_${type}_${from}_to_${to}.csv`;
-    a.click();
+    let csv = "Date,Opening,Receipts,Payments,Closing,Status\n";
+    filtered.forEach(s => { csv += `${s.Date},${isBank?s.Bank_Opening_Balance:s.Opening_Balance},${isBank?s.Bank_Total_Credits:s.Total_Deposits},${isBank?s.Bank_Total_Debits:s.Total_Expenses},${isBank?s.Bank_Closing_Balance:s.Closing_Balance},${s.Verified?'Verified':'Draft'}\n`; });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `Report_${type}_${from}_${to}.csv`; a.click();
   },
 
   async exportFullReportPDF() {
-    const from = document.getElementById('report-from').value;
-    const to = document.getElementById('report-to').value;
-    const type = document.getElementById('report-type').value;
-    const isBank = type === 'bank';
-    
+    const from = document.getElementById('report-from').value, to = document.getElementById('report-to').value, type = document.getElementById('report-type').value, isBank = type === 'bank';
     let summaries = await api.req('getSummary');
+    let denomsAll = await api.req('getDenominations');
     let filtered = summaries.filter(s => s.Date >= from && s.Date <= to).sort((a,b) => a.Date > b.Date ? 1 : -1);
-    
-    let html = `<html><head><title>Report ${from} to ${to}</title><style>
-      body{font-family:sans-serif; padding:20px;}
-      table{width:100%; border-collapse:collapse; margin-top:20px;}
-      th,td{padding:8px; border:1px solid #ddd; text-align:left;}
-      th{background:#f4f4f4;}
-      h2{color:#333;}
-    </style></head><body>
-      <h2>Financial Report (${type.toUpperCase()})</h2>
-      <p>Range: ${from} to ${to}</p>
-      <table><thead><tr><th>Date</th><th>Opening</th><th>In</th><th>Out</th><th>Closing</th><th>Status</th></tr></thead><tbody>`;
-    
+    let html = `<html><head><style>body{font-family:sans-serif;padding:20px;}table{width:100%;border-collapse:collapse;margin-top:20px;}th,td{padding:8px;border:1px solid #ddd;text-align:left;}th{background:#f4f4f4;}</style></head><body><h2>Report (${type.toUpperCase()})</h2><p>${from} to ${to}</p><table><thead><tr><th>Date</th><th>Opening</th><th>Receipts</th><th>Payments</th><th>Closing</th><th>Status/Denoms</th></tr></thead><tbody>`;
     filtered.forEach(s => {
-      const ob = isBank ? s.Bank_Opening_Balance : s.Opening_Balance;
-      const dep = isBank ? s.Bank_Total_Credits : s.Total_Deposits;
-      const exp = isBank ? s.Bank_Total_Debits : s.Total_Expenses;
-      const cb = isBank ? s.Bank_Closing_Balance : s.Closing_Balance;
-      html += `<tr><td>${s.Date}</td><td>${ob}</td><td>${dep}</td><td>${exp}</td><td>${cb}</td><td>${s.Verified?'Verified':'Draft'}</td></tr>`;
+      let dStr = ""; if(!isBank) { let ds = denomsAll.filter(x => x.Date === s.Date); dStr = ds.map(x => `${x.Denomination}x${x.Count}`).join(", "); }
+      html += `<tr><td>${s.Date}</td><td>${isBank?s.Bank_Opening_Balance:s.Opening_Balance}</td><td>${isBank?s.Bank_Total_Credits:s.Total_Deposits}</td><td>${isBank?s.Bank_Total_Debits:s.Total_Expenses}</td><td>${isBank?s.Bank_Closing_Balance:s.Closing_Balance}</td><td>${s.Verified?'V':'D'} ${dStr?`[${dStr}]`:''}</td></tr>`;
     });
-    
     html += `</tbody></table><scr` + `ipt>window.onload=()=>window.print();</scr` + `ipt></body></html>`;
-    const win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-  },
-
-  printReports() {
-    window.print();
+    window.open('', '_blank').document.write(html);
   }
 };
-
 window.onload = () => app.init();
-
 </script>
 </body>
 </html>

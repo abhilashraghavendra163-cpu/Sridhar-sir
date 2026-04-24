@@ -23,13 +23,13 @@ function setupSheets() {
       if (name === SHEET_NAMES.SUMMARY) {
         headers = ['Date', 'Opening_Balance', 'Total_Deposits', 'Total_Expenses', 'Closing_Balance', 'Bank_Opening_Balance', 'Bank_Total_Credits', 'Bank_Total_Debits', 'Bank_Closing_Balance', 'Verified', 'Variance', 'Remarks', 'Counted_By', 'Verified_By'];
       } else if (name === SHEET_NAMES.TRANSACTIONS) {
-        headers = ['ID', 'Date', 'Type', 'Mode', 'Category', 'Description', 'Amount', 'Entered_by', 'Timestamp'];
+        headers = ['ID', 'Date', 'Type', 'Mode', 'Name', 'Category', 'Amount', 'Entered_by', 'Timestamp'];
       } else if (name === SHEET_NAMES.DENOMINATIONS) {
         headers = ['Date', 'Denomination', 'Count', 'Amount'];
       } else if (name === SHEET_NAMES.USERS) {
-        headers = ['Username', 'Password', 'Role']; // Roles: Admin, Cashier
+        headers = ['Username', 'Password', 'Role']; 
       } else if (name === SHEET_NAMES.BANK_TRANSACTIONS) {
-        headers = ['ID', 'Date', 'Type', 'Reference', 'Description', 'Amount', 'Entered_by', 'Timestamp'];
+        headers = ['ID', 'Date', 'Type', 'Mode', 'Reference', 'Description', 'Amount', 'Entered_by', 'Timestamp'];
       } else if (name === SHEET_NAMES.DAILY_REPORTS) {
         headers = ['Date', 'Summary_Type', 'Opening_Balance', 'Total_Inflow', 'Total_Outflow', 'Closing_Balance', 'Status', 'Generated_At'];
       }
@@ -37,215 +37,165 @@ function setupSheets() {
       if (headers.length > 0) {
         sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
         sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
-        
-        // Add default admin if users sheet is created
-        if (name === SHEET_NAMES.USERS) {
-          sheet.appendRow(['admin', 'adminpassword', 'Admin']);
-        }
-        
-        // Force the whole datatable to Plain Text immediately so dates don't break logic
-        if (name !== SHEET_NAMES.USERS) {
-           sheet.getRange(2, 1, 1000, headers.length).setNumberFormat("@");
-        }
       }
     }
   });
 }
 
-// 2. HTTP GET - Check setup or raw data
-function doGet(e) {
-  // We use POST for everything for simplicity, but GET can verify endpoint
-  return jsonResponse({ status: 'success', message: 'Cashbook API is online' });
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Cashbook_App')
+    .setTitle('Daily Cashbook Tracker')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-// 3. HTTP POST - Handle all data operations
 function doPost(e) {
   try {
-    // Auto-setup database if it's missing (Prevents login lockout)
-    if (!SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.USERS)) {
-      setupSheets();
-    }
-    
     const data = JSON.parse(e.postData.contents);
     const action = data.action;
-    
-    if (action === 'getUsers') {
-      return jsonResponse(getSheetData(SHEET_NAMES.USERS));
-    } else if (action === 'addUser') {
-      appendRow(SHEET_NAMES.USERS, data.payload);
-      SpreadsheetApp.flush();
-      return jsonResponse({ status: 'success' });
-    } else if (action === 'editUser') {
-      editUser(data.payload);
-      SpreadsheetApp.flush();
-      return jsonResponse({ status: 'success' });
-    } else if (action === 'deleteUser') {
-      deleteUser(data.payload.Username);
-      return jsonResponse({ status: 'success' });
-    } else if (action === 'getSummary') {
-      return jsonResponse(getSheetData(SHEET_NAMES.SUMMARY));
-    } else if (action === 'loadDayData') {
-      let summaries = getSheetData(SHEET_NAMES.SUMMARY);
-      let tRaw = getSheetData(SHEET_NAMES.TRANSACTIONS);
-      let dRaw = getSheetData(SHEET_NAMES.DENOMINATIONS);
-      let bRaw = getSheetData(SHEET_NAMES.BANK_TRANSACTIONS);
+    const payload = data.payload;
+    const date = data.date;
+
+    let result;
+    switch (action) {
+      case 'getUsers': result = getSheetData(SHEET_NAMES.USERS); break;
+      case 'addUser': result = appendRow(SHEET_NAMES.USERS, payload); break;
+      case 'editUser': result = editUser(payload); break;
+      case 'deleteUser': result = deleteRow(SHEET_NAMES.USERS, 'Username', payload.Username); break;
       
-      let txs = data.date ? tRaw.filter(r => String(safeValue(r.Date)) === String(data.date)) : tRaw;
-      let denoms = data.date ? dRaw.filter(r => String(safeValue(r.Date)) === String(data.date)) : dRaw;
-      let bankTxs = data.date ? bRaw.filter(r => String(safeValue(r.Date)) === String(data.date)) : bRaw;
+      case 'getSummary': result = getSheetData(SHEET_NAMES.SUMMARY); break;
+      case 'loadDayData': 
+        result = {
+          summaries: getSheetData(SHEET_NAMES.SUMMARY),
+          txs: getSheetData(SHEET_NAMES.TRANSACTIONS).filter(t => String(safeValue(t.Date)) === String(date)),
+          denoms: getSheetData(SHEET_NAMES.DENOMINATIONS).filter(d => String(safeValue(d.Date)) === String(date)),
+          bankTxs: getSheetData(SHEET_NAMES.BANK_TRANSACTIONS).filter(t => String(safeValue(t.Date)) === String(date))
+        };
+        break;
       
-      return jsonResponse({ summaries, txs, denoms, bankTxs });
-    } else if (action === 'getBankTransactions') {
-      let bTxs = getSheetData(SHEET_NAMES.BANK_TRANSACTIONS);
-      if (data.date) bTxs = bTxs.filter(r => String(safeValue(r.Date)) === String(data.date));
-      return jsonResponse(bTxs);
-    } else if (action === 'saveBankTransaction') {
-      Object.keys(data.payload).forEach(k => { data.payload[k] = safeValue(data.payload[k]); });
-      appendRow(SHEET_NAMES.BANK_TRANSACTIONS, data.payload);
-      SpreadsheetApp.flush();
-      return jsonResponse({ status: 'success' });
-    } else if (action === 'deleteBankTransaction') {
-      deleteGenericRow(SHEET_NAMES.BANK_TRANSACTIONS, 'ID', data.payload.ID);
-      SpreadsheetApp.flush();
-      return jsonResponse({ status: 'success' });
-    } else if (action === 'getTransactions') {
-      let txs = getSheetData(SHEET_NAMES.TRANSACTIONS);
-      if (data.date) txs = txs.filter(r => r.Date === data.date);
-      return jsonResponse(txs);
-    } else if (action === 'getDenominations') {
-      let denoms = getSheetData(SHEET_NAMES.DENOMINATIONS);
-      if (data.date) denoms = denoms.filter(r => r.Date === data.date);
-      return jsonResponse(denoms);
-    } else if (action === 'saveTransaction') {
-      Object.keys(data.payload).forEach(k => { data.payload[k] = safeValue(data.payload[k]); });
-      appendRow(SHEET_NAMES.TRANSACTIONS, data.payload);
-      if (data.payload.Date) drawDailySheet(data.payload.Date);
-      SpreadsheetApp.flush();
-      return jsonResponse({ status: 'success' });
-    } else if (action === 'deleteTransaction') {
-      deleteTransaction(data.payload.ID);
-      if (data.payload.Date) drawDailySheet(data.payload.Date);
-      SpreadsheetApp.flush();
-      return jsonResponse({ status: 'success' });
-    } else if (action === 'saveSummary') {
-      updateOrAppendSummary(data.payload);
-      SpreadsheetApp.flush();
-      return jsonResponse({ status: 'success' });
-    } else if (action === 'saveDenominations') {
-      saveDenominationsList(data.date, data.payload);
-      SpreadsheetApp.flush();
-      return jsonResponse({ status: 'success' });
+      case 'saveSummary': result = updateOrAppendSummary(payload); break;
+      case 'saveTransaction': result = appendRow(SHEET_NAMES.TRANSACTIONS, payload); break;
+      case 'deleteTransaction': result = deleteRow(SHEET_NAMES.TRANSACTIONS, 'ID', payload.ID); break;
+      
+      case 'saveBankTransaction': result = appendRow(SHEET_NAMES.BANK_TRANSACTIONS, payload); break;
+      case 'deleteBankTransaction': result = deleteRow(SHEET_NAMES.BANK_TRANSACTIONS, 'ID', payload.ID); break;
+      
+      case 'saveDenominations': result = saveDenominations(payload, date); break;
+      case 'getTransactions': result = getSheetData(SHEET_NAMES.TRANSACTIONS); break;
+      case 'getDenominations': result = getSheetData(SHEET_NAMES.DENOMINATIONS); break;
     }
-    
-    throw new Error('Unknown action: ' + action);
+
+    return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
-    return jsonResponse({ status: 'error', message: err.toString() }, 400);
+    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: err.message})).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
-// --- HELPER FUNCTIONS ---
-
-function getSheetData(sheetName) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+// --- Helper Functions ---
+function getSheetData(name) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(name);
   if (!sheet) return [];
-  
   const data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return [];
-  
   const headers = data[0];
-  const rows = [];
-  
-  for (let i = 1; i < data.length; i++) {
-    let rowObj = {};
-    for (let j = 0; j < headers.length; j++) {
-      rowObj[headers[j]] = safeValue(data[i][j]);
-    }
-    rows.push(rowObj);
-  }
-  return rows;
+  return data.slice(1).map(row => {
+    let obj = {};
+    headers.forEach((h, i) => obj[h] = row[i]);
+    return obj;
+  });
 }
 
-function safeValue(val) {
-  if (Object.prototype.toString.call(val) === '[object Date]') {
-    const tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
-    return Utilities.formatDate(val, tz, "yyyy-MM-dd");
-  }
-  return val;
-}
-
-function appendRow(sheetName, obj) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+function appendRow(name, payload) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) { setupSheets(); sheet = ss.getSheetByName(name); }
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  
-  const rowData = headers.map(h => obj[h] !== undefined ? obj[h] : '');
-  sheet.appendRow(rowData);
+  const row = headers.map(h => payload[h] !== undefined ? payload[h] : '');
+  sheet.appendRow(row);
+  return { status: 'success' };
 }
 
-function deleteUser(username) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.USERS);
+function deleteRow(name, key, value) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(name);
+  if (!sheet) return { status: 'error' };
   const data = sheet.getDataRange().getValues();
   const headers = data[0];
-  const userColIndex = headers.indexOf('Username');
-  
-  for (let i = data.length - 1; i >= 1; i--) {
-    if (String(data[i][userColIndex]) === String(username)) {
+  const colIndex = headers.indexOf(key);
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][colIndex]) === String(value)) {
       sheet.deleteRow(i + 1);
+      return { status: 'success' };
     }
   }
+  return { status: 'not_found' };
 }
 
 function editUser(payload) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.USERS);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAMES.USERS);
   const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-  const userColIndex = headers.indexOf('Username');
-  
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][userColIndex]) === String(payload.Username)) {
-      const rowData = headers.map(h => payload[h] !== undefined ? payload[h] : data[i][headers.indexOf(h)]);
-      sheet.getRange(i + 1, 1, 1, headers.length).setValues([rowData]);
-      return;
+    if (data[i][0] === payload.Username) {
+      sheet.getRange(i + 1, 2).setValue(payload.Password);
+      sheet.getRange(i + 1, 3).setValue(payload.Role);
+      return { status: 'success' };
     }
   }
+  return { status: 'error' };
 }
 
-
-function deleteGenericRow(sheetName, colName, value) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-  const colIndex = headers.indexOf(colName);
+function saveDenominations(payload, date) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAMES.DENOMINATIONS);
+  if (!sheet) { setupSheets(); sheet = ss.getSheetByName(SHEET_NAMES.DENOMINATIONS); }
   
+  // Clear existing denoms for this date
+  const data = sheet.getDataRange().getValues();
   for (let i = data.length - 1; i >= 1; i--) {
-    if (String(data[i][colIndex]) === String(value)) {
+    if (String(safeValue(data[i][0])) === String(date)) {
       sheet.deleteRow(i + 1);
     }
   }
+  
+  // Add new
+  payload.forEach(item => {
+    sheet.appendRow([item.Date, item.Denomination, item.Count, item.Amount]);
+  });
+  return { status: 'success' };
 }
 
-function updateOrAppendSummary(summaryObj) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.SUMMARY);
+function updateOrAppendSummary(payload) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAMES.SUMMARY);
+  if (!sheet) { setupSheets(); sheet = ss.getSheetByName(SHEET_NAMES.SUMMARY); }
+  
   const data = sheet.getDataRange().getValues();
   const headers = data[0];
   const dateColIndex = headers.indexOf('Date');
   
-  let rowIndex = -1;
   for (let i = 1; i < data.length; i++) {
-    if (String(safeValue(data[i][dateColIndex])) === String(summaryObj.Date)) {
-      rowIndex = i + 1;
-      break;
+    if (String(safeValue(data[i][dateColIndex])) === String(payload.Date)) {
+      const rowData = headers.map(h => payload[h] !== undefined ? payload[h] : data[i][headers.indexOf(h)]);
+      sheet.getRange(i + 1, 1, 1, headers.length).setValues([rowData]);
+      
+      if (payload.Verified) { drawDailySheet(payload.Date); }
+      return { status: 'success' };
     }
   }
   
-  const rowData = headers.map(h => summaryObj[h] !== undefined ? summaryObj[h] : '');
-  if (rowIndex > -1) {
-    sheet.getRange(rowIndex, 1, 1, headers.length).setValues([rowData]);
-  } else {
-    sheet.appendRow(rowData);
+  const rowData = headers.map(h => payload[h] !== undefined ? payload[h] : '');
+  sheet.appendRow(rowData);
+  if (payload.Verified) { drawDailySheet(payload.Date); }
+  return { status: 'success' };
+}
+
+function safeValue(val) {
+  if (val instanceof Date) {
+    const d = new Date(val);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().split('T')[0];
   }
-  
-  // Dynamically draw the requested per-day visual tab
-  drawDailySheet(summaryObj.Date);
+  return val;
 }
 
 function drawDailySheet(dateStr) {
@@ -256,7 +206,8 @@ function drawDailySheet(dateStr) {
   if (!sheet) sheet = ss.insertSheet(sheetName);
   else sheet.clear();
   
-  const summary = getSheetData(SHEET_NAMES.SUMMARY).find(s => String(safeValue(s.Date)) === String(dateStr)) || {};
+  const summaries = getSheetData(SHEET_NAMES.SUMMARY);
+  const summary = summaries.find(s => String(safeValue(s.Date)) === String(dateStr)) || {};
   const allTxs = getSheetData(SHEET_NAMES.TRANSACTIONS).filter(t => String(safeValue(t.Date)) === String(dateStr));
   const deps = allTxs.filter(t => t.Type === 'Deposit');
   const exps = allTxs.filter(t => t.Type === 'Expense');
@@ -271,33 +222,32 @@ function drawDailySheet(dateStr) {
   view.push(['Status:', summary.Verified ? 'Verified & Locked' : 'Draft', '', '']);
   view.push(['Opening Balance:', summary.Opening_Balance || 0, '', '']);
   view.push([]);
-  view.push(['--- DEPOSITS ---', 'Amount', '--- EXPENSES ---', 'Amount']);
+  view.push(['--- RECEIPTS ---', 'Amount', '--- PAYMENTS ---', 'Amount']);
   
   const maxRows = Math.max(deps.length, exps.length, 1);
   for (let i=0; i<maxRows; i++) {
      let dType = deps[i] ? deps[i].Category + ' (' + deps[i].Mode + ')' : '';
      let dAmt = deps[i] ? deps[i].Amount : '';
-     let eType = exps[i] ? exps[i].Category + ' (' + exps[i].Mode + ')' : '';
+     let eType = exps[i] ? (exps[i].Name || '') + ': ' + exps[i].Category + ' (' + exps[i].Mode + ')' : '';
      let eAmt = exps[i] ? exps[i].Amount : '';
      view.push([dType, dAmt, eType, eAmt]);
   }
   
   view.push([]);
-  view.push(['Total Deposits:', summary.Total_Deposits || 0, 'Total Expenses:', summary.Total_Expenses || 0]);
-  view.push([]);
-  view.push(['System Expected Closing Balance:', summary.Closing_Balance || 0, '', '']);
+  view.push(['Total Receipts:', summary.Total_Deposits || 0, 'Total Payments:', summary.Total_Expenses || 0]);
+  view.push(['Closing Balance:', summary.Closing_Balance || 0, '', '']);
   view.push([]);
   
-  view.push(['--- BANK CREDITS ---', 'Amount', '--- BANK DEBITS ---', 'Amount']);
+  view.push(['--- BANK RECEIPTS ---', 'Amount', '--- BANK PAYMENTS ---', 'Amount']);
   const maxBankRows = Math.max(bCreds.length, bDebs.length, 1);
   for (let i=0; i<maxBankRows; i++) {
-     let cDesc = bCreds[i] ? bCreds[i].Description + ' (Ref: ' + bCreds[i].Reference + ')' : '';
+     let cDesc = bCreds[i] ? bCreds[i].Description + ' (Ref: ' + (bCreds[i].Reference||'N/A') + ', ' + (bCreds[i].Mode||'Bank') + ')' : '';
      let cAmt = bCreds[i] ? bCreds[i].Amount : '';
-     let dDesc = bDebs[i] ? bDebs[i].Description + ' (Ref: ' + bDebs[i].Reference + ')' : '';
+     let dDesc = bDebs[i] ? bDebs[i].Description + ' (Ref: ' + (bDebs[i].Reference||'N/A') + ', ' + (bDebs[i].Mode||'Bank') + ')' : '';
      let dAmt = bDebs[i] ? bDebs[i].Amount : '';
      view.push([cDesc, cAmt, dDesc, dAmt]);
   }
-  view.push(['Bank Total Credits:', summary.Bank_Total_Credits || 0, 'Bank Total Debits:', summary.Bank_Total_Debits || 0]);
+  view.push(['Bank Total Receipts:', summary.Bank_Total_Credits || 0, 'Bank Total Payments:', summary.Bank_Total_Debits || 0]);
   view.push(['Bank Opening Balance:', summary.Bank_Opening_Balance || 0, 'Bank Closing Balance:', summary.Bank_Closing_Balance || 0]);
   view.push([]);
   
@@ -307,44 +257,18 @@ function drawDailySheet(dateStr) {
        view.push(['Note: ' + d.Denomination, d.Count + ' count', 'Value:', d.Amount]);
     });
     view.push([]);
-    view.push(['Variance:', summary.Variance, '', '']);
+    view.push(['Variance:', summary.Variance || 0, '', '']);
     view.push(['Remarks:', summary.Remarks || 'None', '', '']);
   }
   
   view.push([]);
-  view.push(['Last Modified By:', summary.Verified_By || summary.Counted_By || 'System', '', '']);
+  view.push(['Verified By:', summary.Verified_By || 'System', '', '']);
   view.push(['Report Generated At:', new Date().toLocaleString(), '', '']);
   
+  const lastRow = view.length;
   sheet.getRange(1, 1, view.length, 4).setValues(view);
   sheet.getRange(1, 1, 1, 4).setFontWeight("bold").setFontSize(14).setBackground("#4F46E5").setFontColor("white");
   sheet.getRange(6, 1, 1, 4).setFontWeight("bold").setBackground("#F1F5F9");
-  sheet.getRange(lastRow, 1, 1, 4).setFontWeight("bold").setBackground("#F1F5F9");
   sheet.autoResizeColumns(1, 4);
   sheet.setFrozenRows(5);
-}
-
-function saveDenominationsList(date, denomsList) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.DENOMINATIONS);
-  
-  if (sheet.getLastRow() > 1) {
-    const data = sheet.getDataRange().getValues();
-    const headers = data[0];
-    const dateColIndex = headers.indexOf('Date');
-    for (let i = data.length - 1; i >= 1; i--) {
-      if (String(safeValue(data[i][dateColIndex])) === String(date)) {
-        sheet.deleteRow(i + 1);
-      }
-    }
-  }
-  
-  const headers = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
-  denomsList.forEach(denomObj => {
-    const rowData = headers.map(h => denomObj[h] !== undefined ? denomObj[h] : '');
-    sheet.appendRow(rowData);
-  });
-}
-
-function jsonResponse(data, code = 200) {
-  return ContentService.createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
 }
